@@ -48,7 +48,7 @@ export default function Quiz() {
       setSelected(null);
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigate("/score", { state: { score, total: SAMPLE_QUESTIONS.length } });
+      navigate("/results", { state: { score, total: SAMPLE_QUESTIONS.length } });
     }
   };
 
