@@ -2,53 +2,44 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const SAMPLE_QUESTIONS = [
-  {
-    question: "What is the capital of France?",
-    options: ["Berlin", "Madrid", "Paris", "Lisbon"],
-    answer: "Paris",
-  },
-  {
-    question: "Which planet is known as the Red Planet?",
-    options: ["Mars", "Venus", "Jupiter", "Saturn"],
-    answer: "Mars",
-  },
-  {
-    question: "Who wrote 'Romeo and Juliet'?",
-    options: [
-      "William Wordsworth",
-      "William Shakespeare",
-      "Jane Austen",
-      "Mark Twain",
-    ],
-    answer: "William Shakespeare",
-  },
-];
-
 export default function Quiz() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { topic, difficulty, count } = location.state || {};
+  const { questions = [], topic, difficulty, count } = location.state || {};
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
 
-  const currentQuestion = SAMPLE_QUESTIONS[currentIndex];
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-xl font-bold">
+        No quiz data. Please go back and start again.
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentIndex];
+  const options = [
+    ...currentQuestion.incorrect_answers,
+    currentQuestion.correct_answer,
+  ].sort(() => Math.random() - 0.5);
 
   const handleAnswer = (option) => {
     setSelected(option);
-    if (option === currentQuestion.answer) {
+    if (option === currentQuestion.correct_answer) {
       setScore(score + 1);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex + 1 < SAMPLE_QUESTIONS.length) {
+    if (currentIndex + 1 < questions.length) {
       setSelected(null);
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigate("/results", { state: { score, total: SAMPLE_QUESTIONS.length } });
+      navigate("/results", {
+        state: { score, total: questions.length },
+      });
     }
   };
 
@@ -64,29 +55,30 @@ export default function Quiz() {
             Difficulty: {difficulty || "Easy"}
           </div>
           <div className="text-[#E90E63] font-bold text-xl">
-            Question {currentIndex + 1}/{count || SAMPLE_QUESTIONS.length}
+            Question {currentIndex + 1}/{count || questions.length}
           </div>
         </div>
 
         {/* Question Box */}
         <div className="w-full bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-2xl font-bold text-center text-gray-800">
-            {currentQuestion.question}
-          </h2>
+          <h2
+            className="text-2xl font-bold text-center text-gray-800"
+            dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
+          />
         </div>
 
         {/* Options */}
         <div className="w-full flex flex-col gap-4 mb-6">
-          {currentQuestion.options.map((option) => {
+          {options.map((option, i) => {
             const isSelected = selected === option;
             const isCorrect =
-              selected && option === currentQuestion.answer && isSelected;
+              selected && option === currentQuestion.correct_answer && isSelected;
             const isWrong =
-              selected && option !== currentQuestion.answer && isSelected;
+              selected && option !== currentQuestion.correct_answer && isSelected;
 
             return (
               <button
-                key={option}
+                key={i}
                 onClick={() => handleAnswer(option)}
                 disabled={!!selected}
                 className={`w-full rounded-xl py-4 font-medium text-lg shadow-md
@@ -97,9 +89,8 @@ export default function Quiz() {
                       ? "bg-red-500 text-white"
                       : "bg-[#E90E63] text-white hover:bg-[#c20d54]"
                   }`}
-              >
-                {option}
-              </button>
+                dangerouslySetInnerHTML={{ __html: option }}
+              />
             );
           })}
         </div>
@@ -110,7 +101,7 @@ export default function Quiz() {
           disabled={!selected}
           className="w-full md:w-1/2 rounded-xl bg-white/80 text-black font-extrabold py-4 shadow-[0_4px_0_rgba(0,0,0,0.15)] disabled:opacity-50"
         >
-          {currentIndex + 1 < SAMPLE_QUESTIONS.length ? "NEXT" : "FINISH"}
+          {currentIndex + 1 < questions.length ? "NEXT" : "FINISH"}
         </button>
       </div>
     </div>
