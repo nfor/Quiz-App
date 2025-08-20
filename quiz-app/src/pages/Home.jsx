@@ -1,21 +1,57 @@
 // src/pages/Home.jsx
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const TOPICS = ["General Knowledge", "Science", "History", "Entertainment"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [3, 5, 10];
 
 export default function Home() {
   const navigate = useNavigate();
 
-  const [topic, setTopic] = useState(TOPICS[0]);
+  const [categories, setCategories] = useState([]);
+  const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState(DIFFICULTIES[0]);
   const [count, setCount] = useState(QUESTION_COUNTS[0]);
+  const [search, setSearch] = useState("");
 
-  const startQuiz = () => {
-    navigate("/quiz", { state: { topic, difficulty, count } });
+  // Fetch quiz categories from API
+  useEffect(() => {
+    fetch("https://opentdb.com/api_category.php")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data.trivia_categories || []);
+        if (data.trivia_categories?.length > 0) {
+          setTopic(data.trivia_categories[0].id);
+        }
+      })
+      .catch((err) => console.error("Error fetching categories:", err));
+  }, []);
+
+  // Start Quiz button handler
+  const startQuiz = async () => {
+    try {
+      const url = `https://opentdb.com/api.php?amount=${count}&category=${topic}&difficulty=${difficulty.toLowerCase()}&type=multiple`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.response_code !== 0 || data.results.length === 0) {
+        alert("No questions found for this selection. Try again.");
+        return;
+      }
+
+      navigate("/quiz", {
+        state: { questions: data.results, topic, difficulty, count },
+      });
+    } catch (err) {
+      console.error("Failed to start quiz:", err);
+      alert("Could not fetch quiz data. Please try again later.");
+    }
   };
+
+  // Filter categories by search
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen w-full flex justify-center bg-[#F3E4F4]">
@@ -35,6 +71,8 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search topics..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full md:w-2/3 rounded-xl bg-[#E90E63] text-white placeholder-white text-center py-3 shadow-md outline-none"
             />
           </div>
@@ -47,9 +85,9 @@ export default function Home() {
               onChange={(e) => setTopic(e.target.value)}
               className="rounded-xl bg-[#E90E63] text-white font-medium px-4 py-3 shadow-md outline-none"
             >
-              {TOPICS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {filteredCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
