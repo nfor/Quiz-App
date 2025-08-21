@@ -1,15 +1,26 @@
 // src/pages/Quiz.jsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function Quiz() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // dynamic questions passed from Home
   const { questions = [], topic, difficulty, count } = location.state || {};
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
+  const [answers, setAnswers] = useState([]); // collect review data
 
   if (questions.length === 0) {
     return (
@@ -20,25 +31,52 @@ export default function Quiz() {
   }
 
   const currentQuestion = questions[currentIndex];
-  const options = [
-    ...currentQuestion.incorrect_answers,
-    currentQuestion.correct_answer,
-  ].sort(() => Math.random() - 0.5);
+
+  // stable shuffled options per question index
+  const options = useMemo(() => {
+    if (!currentQuestion) return [];
+    const opts = [
+      ...(currentQuestion.incorrect_answers || []),
+      currentQuestion.correct_answer,
+    ];
+    return shuffle(opts);
+  }, [currentIndex, questions]);
 
   const handleAnswer = (option) => {
     setSelected(option);
-    if (option === currentQuestion.correct_answer) {
-      setScore(score + 1);
-    }
+    // do not update score here; update on Next to avoid double counting
   };
 
   const handleNext = () => {
+    const isCorrect = selected === currentQuestion.correct_answer;
+
+    const entry = {
+      question: currentQuestion.question,
+      selected,
+      correct: currentQuestion.correct_answer,
+      isCorrect,
+    };
+
+    const nextAnswers = [...answers, entry];
+    const finalScore = score + (isCorrect ? 1 : 0);
+
+    // update local state for continuity if there are more questions
+    setAnswers(nextAnswers);
+    setScore(finalScore);
+
     if (currentIndex + 1 < questions.length) {
+      setCurrentIndex((i) => i + 1);
       setSelected(null);
-      setCurrentIndex(currentIndex + 1);
     } else {
+      // navigate to results with review payload
       navigate("/results", {
-        state: { score, total: questions.length },
+        state: {
+          score: finalScore,
+          total: questions.length,
+          answers: nextAnswers,
+          topic,
+          difficulty,
+        },
       });
     }
   };
