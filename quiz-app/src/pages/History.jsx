@@ -11,6 +11,11 @@ export default function History() {
     setHistory(stored);
   }, []);
 
+  const clearHistory = () => {
+    localStorage.removeItem("quizHistory");
+    setHistory([]);
+  };
+
   return (
     <div className="min-h-screen w-full flex justify-center bg-[#F3E4F4]">
       <div className="w-full max-w-5xl flex flex-col items-center px-4 py-8">
@@ -35,12 +40,24 @@ export default function History() {
           </ul>
         )}
 
-        <button
-          onClick={() => navigate("/")}
-          className="mt-6 w-full md:w-1/2 rounded-xl py-4 font-bold bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54]"
-        >
-          Back Home
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-6 w-full md:w-1/2">
+          <button
+            onClick={() => navigate("/")}
+            className="flex-1 rounded-xl py-4 font-bold bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54]"
+          >
+            Back Home
+          </button>
+
+          {history.length > 0 && (
+            <button
+              onClick={clearHistory}
+              className="flex-1 rounded-xl py-4 font-bold bg-gray-200 text-black shadow-md hover:bg-gray-300"
+            >
+              Clear History
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
