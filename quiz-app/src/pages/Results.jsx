@@ -1,64 +1,101 @@
 // src/pages/Results.jsx
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { score = 0, total = 0, answers = [], topic, difficulty } = location.state || {};
+  const { score = 0, total = 0, answers = [], topic, difficulty } =
+    location.state || {};
+
+  const [history, setHistory] = useState([]);
 
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
+  // Save result on mount
+  useEffect(() => {
+    if (total > 0) {
+      const attempt = {
+        date: new Date().toLocaleString(),
+        topic,
+        difficulty,
+        score,
+        total,
+        percentage,
+      };
+
+      const prev = JSON.parse(localStorage.getItem("quizHistory") || "[]");
+      const updated = [attempt, ...prev];
+      localStorage.setItem("quizHistory", JSON.stringify(updated));
+      setHistory(updated);
+    }
+  }, [score, total, topic, difficulty, percentage]);
+
   return (
     <div className="min-h-screen w-full flex justify-center bg-[#F3E4F4]">
-      <div className="w-full max-w-5xl flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-5xl flex flex-col items-center px-4 py-8 text-center">
         {/* Score Box */}
-        <div className="bg-white rounded-xl shadow-md w-full max-w-lg p-8 mb-6 text-center">
-          <h1 className="text-3xl font-bold text-[#E90E63] mb-4">Quiz Finished!</h1>
+        <div className="bg-white rounded-xl shadow-md w-full max-w-lg p-8 mb-6">
+          <h1 className="text-3xl font-bold text-[#E90E63] mb-4">
+            Quiz Finished!
+          </h1>
           <p className="text-lg text-gray-700 mb-2">
             You scored <span className="font-bold">{score}</span> out of{" "}
             <span className="font-bold">{total}</span>
           </p>
           <p className="text-2xl font-extrabold text-gray-900">{percentage}%</p>
-          {topic && (
-            <p className="text-sm text-gray-500 mt-2">
-              Topic: {topic} | Difficulty: {difficulty}
-            </p>
-          )}
         </div>
 
-        {/* Review Section */}
-        <div className="w-full bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Review</h2>
-          <div className="flex flex-col gap-6">
-            {answers.map((ans, i) => (
-              <div key={i} className="border-b pb-4">
-                {/* Question */}
-                <p
-                  className="font-semibold mb-2"
-                  dangerouslySetInnerHTML={{ __html: `${i + 1}. ${ans.question}` }}
+        {/* Review of questions */}
+        <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-6 mb-8 text-left">
+          <h2 className="text-xl font-bold mb-4 text-[#E90E63]">Review</h2>
+          {answers.map((a, i) => (
+            <div key={i} className="mb-4">
+              <p
+                className="font-semibold text-gray-800"
+                dangerouslySetInnerHTML={{ __html: `${i + 1}. ${a.question}` }}
+              />
+              <p>
+                Your Answer:{" "}
+                <span
+                  className={
+                    a.isCorrect ? "text-green-600 font-bold" : "text-red-600 font-bold"
+                  }
+                  dangerouslySetInnerHTML={{ __html: a.selected || "No Answer" }}
                 />
-                {/* Your Answer */}
+              </p>
+              {!a.isCorrect && (
                 <p
-                  className={`mb-1 ${
-                    ans.isCorrect ? "text-green-600 font-bold" : "text-red-600 font-bold"
-                  }`}
-                  dangerouslySetInnerHTML={{
-                    __html: `Your answer: ${ans.selected || "No answer"}`,
-                  }}
+                  className="text-green-600"
+                  dangerouslySetInnerHTML={{ __html: `Correct: ${a.correct}` }}
                 />
-                {/* Correct Answer */}
-                {!ans.isCorrect && (
-                  <p
-                    className="text-gray-700"
-                    dangerouslySetInnerHTML={{
-                      __html: `Correct answer: ${ans.correct}`,
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Past History */}
+        <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-6 mb-8 text-left">
+          <h2 className="text-xl font-bold mb-4 text-[#E90E63]">Past Attempts</h2>
+          {history.length === 0 ? (
+            <p>No past attempts yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {history.map((h, i) => (
+                <li
+                  key={i}
+                  className="p-3 rounded-md border shadow-sm flex justify-between text-sm"
+                >
+                  <span>{h.date}</span>
+                  <span>
+                    {h.topic} ({h.difficulty}) - {h.score}/{h.total} (
+                    {h.percentage}%)
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -73,13 +110,8 @@ export default function Results() {
             onClick={() =>
               navigate("/quiz", {
                 state: {
-                  questions: answers.map((a) => ({
-                    question: a.question,
-                    correct_answer: a.correct,
-                    incorrect_answers: [], // cannot rebuild full set unless stored
-                  })),
-                  topic,
-                  difficulty,
+                  topic: topic || "General Knowledge",
+                  difficulty: difficulty || "Easy",
                   count: total,
                 },
               })
@@ -88,6 +120,13 @@ export default function Results() {
           >
             Retake Quiz
           </button>
+          <button
+  onClick={() => navigate("/history")}
+  className="w-full rounded-xl py-4 font-bold bg-gray-200 text-black shadow-md hover:bg-gray-300"
+>
+  View Full History
+</button>
+
         </div>
       </div>
     </div>

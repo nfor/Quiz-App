@@ -17,6 +17,7 @@ export default function Quiz() {
 
   // dynamic questions passed from Home
   const { questions = [], topic, difficulty, count } = location.state || {};
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -44,7 +45,7 @@ export default function Quiz() {
 
   const handleAnswer = (option) => {
     setSelected(option);
-    // do not update score here; update on Next to avoid double counting
+    // scoring handled on Next
   };
 
   const handleNext = () => {
@@ -60,7 +61,6 @@ export default function Quiz() {
     const nextAnswers = [...answers, entry];
     const finalScore = score + (isCorrect ? 1 : 0);
 
-    // update local state for continuity if there are more questions
     setAnswers(nextAnswers);
     setScore(finalScore);
 
@@ -81,11 +81,14 @@ export default function Quiz() {
     }
   };
 
+  // progress %
+  const progress = ((currentIndex + 1) / questions.length) * 100;
+
   return (
     <div className="min-h-screen w-full flex justify-center bg-[#F3E4F4]">
       <div className="w-full max-w-5xl flex flex-col items-center px-4 py-8">
         {/* Header */}
-        <div className="flex flex-wrap justify-between w-full items-center mb-8">
+        <div className="flex flex-wrap justify-between w-full items-center mb-4">
           <div className="text-[#E90E63] font-bold text-xl">
             Topic: {topic || "General Knowledge"}
           </div>
@@ -95,6 +98,14 @@ export default function Quiz() {
           <div className="text-[#E90E63] font-bold text-xl">
             Question {currentIndex + 1}/{count || questions.length}
           </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full h-3 bg-gray-300 rounded-full mb-8">
+          <div
+            className="h-3 bg-[#E90E63] rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
 
         {/* Question Box */}
