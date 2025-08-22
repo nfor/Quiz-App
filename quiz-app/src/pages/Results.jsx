@@ -26,7 +26,16 @@ export default function Results() {
       };
 
       const prev = JSON.parse(localStorage.getItem("quizHistory") || "[]");
-      const updated = [attempt, ...prev];
+      // Remove duplicates: keep only unique attempts based on topic, difficulty, score, total, percentage
+      const isDuplicate = prev.some(
+        (h) =>
+          h.topic === attempt.topic &&
+          h.difficulty === attempt.difficulty &&
+          h.score === attempt.score &&
+          h.total === attempt.total &&
+          h.percentage === attempt.percentage
+      );
+      const updated = isDuplicate ? prev : [attempt, ...prev];
       localStorage.setItem("quizHistory", JSON.stringify(updated));
       setHistory(updated);
     }
