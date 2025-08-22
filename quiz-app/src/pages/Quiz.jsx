@@ -85,8 +85,8 @@ export default function Quiz() {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center">
-      <div className="w-full max-w-3xl mx-auto flex flex-col px-4 py-4">
+    <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center">
+      <div className="w-full max-w-3xl mx-auto flex flex-col px-4 py-6 min-h-[80vh] justify-center">
         {/* Header */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full items-center mb-4">
           <div className="text-[#E90E63] font-semibold text-base sm:text-lg text-center sm:text-left">
