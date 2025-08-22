@@ -107,10 +107,10 @@ export default function Results() {
         </div>
 
         {/* Action Buttons */}
-        <div className="w-full max-w-lg flex flex-col gap-4">
+        <div className="w-full mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
             onClick={() => navigate("/")}
-            className="w-full rounded-xl py-4 font-bold bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54]"
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54] transition-colors"
           >
             Try Another Quiz
           </button>
@@ -124,17 +124,16 @@ export default function Results() {
                 },
               })
             }
-            className="w-full rounded-xl py-4 font-bold bg-white text-black shadow-md hover:bg-gray-100"
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-white text-gray-800 shadow-md hover:bg-gray-50 transition-colors"
           >
             Retake Quiz
           </button>
           <button
-  onClick={() => navigate("/history")}
-  className="w-full rounded-xl py-4 font-bold bg-gray-200 text-black shadow-md hover:bg-gray-300"
->
-  View Full History
-</button>
-
+            onClick={() => navigate("/history")}
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-gray-100 text-gray-700 shadow-md hover:bg-gray-200 transition-colors"
+          >
+            View History
+          </button>
         </div>
       </div>
     </div>
