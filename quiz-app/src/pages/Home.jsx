@@ -50,16 +50,17 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F3E4F4] p-0 m-0">
-      {/* Full width container, less padding */}
-      <div className="w-full flex flex-col items-center px-2 py-4">
+    // Full viewport background
+    <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center p-0 m-0">
+      {/* Centered content container */}
+      <div className="w-full max-w-3xl mx-auto flex flex-col items-center px-6 py-8">
         {/* Title */}
-        <h1 className="text-center text-4xl font-extrabold tracking-wide text-[#E90E63] leading-tight mb-2">
+        <h1 className="text-center text-4xl font-extrabold tracking-wide text-[#E90E63] leading-tight mb-6">
           WELCOME TO THE ALX <br /> QUIZ APP
         </h1>
 
         {/* Main controls */}
-        <div className="w-full mt-4 flex flex-col items-center gap-4">
+        <div className="w-full flex flex-col items-center gap-6">
           {/* Search bar */}
           <input
             type="text"
@@ -67,16 +68,16 @@ export default function Home() {
             placeholder="Search topics..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-xl rounded-lg bg-[#E90E63] text-white placeholder-white text-center py-2 shadow outline-none text-base"
+            className="w-full rounded-lg bg-[#E90E63] text-white placeholder-white text-center py-3 shadow outline-none text-base"
           />
 
           {/* Dropdowns */}
-          <div className="flex flex-wrap justify-center gap-2 w-full max-w-xl">
+          <div className="flex flex-wrap justify-between gap-4 w-full">
             <select
               name="topic"
               value={topic || ''}
               onChange={(e) => setTopic(e.target.value)}
-              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-2 py-2 shadow outline-none text-base"
+              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base"
             >
               {filteredCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -89,7 +90,7 @@ export default function Home() {
               name="difficulty"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
-              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-2 py-2 shadow outline-none text-base"
+              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base"
             >
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d}>
@@ -102,7 +103,7 @@ export default function Home() {
               name="count"
               value={count}
               onChange={(e) => setCount(Number(e.target.value))}
-              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-2 py-2 shadow outline-none text-base"
+              className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base"
             >
               {QUESTION_COUNTS.map((num) => (
                 <option key={num} value={num}>
@@ -115,7 +116,7 @@ export default function Home() {
           {/* Start button */}
           <button
             onClick={startQuiz}
-            className="w-full max-w-xl rounded-lg bg-white/80 text-black font-extrabold py-2 text-base shadow-[0_2px_0_rgba(0,0,0,0.10)]"
+            className="w-full rounded-lg bg-white/80 text-black font-extrabold py-3 text-lg shadow-[0_2px_0_rgba(0,0,0,0.10)] hover:bg-white/90 transition-colors"
             disabled={!topic || categories.length === 0}
           >
             START QUIZ

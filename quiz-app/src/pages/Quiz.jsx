@@ -85,39 +85,39 @@ export default function Quiz() {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen w-full flex justify-center bg-[#F3E4F4]">
-      <div className="w-full max-w-5xl flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center">
+      <div className="w-full max-w-3xl mx-auto flex flex-col px-6 py-8">
         {/* Header */}
-        <div className="flex flex-wrap justify-between w-full items-center mb-4">
-          <div className="text-[#E90E63] font-bold text-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full items-center mb-6">
+          <div className="text-[#E90E63] font-bold text-xl text-center sm:text-left">
             Topic: {topic || "General Knowledge"}
           </div>
-          <div className="text-[#E90E63] font-bold text-xl">
+          <div className="text-[#E90E63] font-bold text-xl text-center">
             Difficulty: {difficulty || "Easy"}
           </div>
-          <div className="text-[#E90E63] font-bold text-xl">
+          <div className="text-[#E90E63] font-bold text-xl text-center sm:text-right">
             Question {currentIndex + 1}/{count || questions.length}
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full h-3 bg-gray-300 rounded-full mb-8">
+        <div className="w-full h-4 bg-gray-300 rounded-full mb-8">
           <div
-            className="h-3 bg-[#E90E63] rounded-full transition-all duration-300"
+            className="h-4 bg-[#E90E63] rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
 
         {/* Question Box */}
-        <div className="w-full bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="w-full bg-white rounded-lg shadow-md p-6 mb-8">
           <h2
-            className="text-2xl font-bold text-center text-gray-800"
+            className="text-xl sm:text-2xl font-bold text-center text-gray-800"
             dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
           />
         </div>
 
         {/* Options */}
-        <div className="w-full flex flex-col gap-4 mb-6">
+        <div className="w-full flex flex-col gap-4 mb-8">
           {options.map((option, i) => {
             const isSelected = selected === option;
             const isCorrect =
@@ -130,7 +130,7 @@ export default function Quiz() {
                 key={i}
                 onClick={() => handleAnswer(option)}
                 disabled={!!selected}
-                className={`w-full rounded-xl py-4 font-medium text-lg shadow-md
+                className={`w-full rounded-lg py-3 px-4 font-medium text-base sm:text-lg shadow-md transition-colors
                   ${
                     isCorrect
                       ? "bg-green-500 text-white"
@@ -148,7 +148,7 @@ export default function Quiz() {
         <button
           onClick={handleNext}
           disabled={!selected}
-          className="w-full md:w-1/2 rounded-xl bg-white/80 text-black font-extrabold py-4 shadow-[0_4px_0_rgba(0,0,0,0.15)] disabled:opacity-50"
+          className="w-full rounded-lg bg-white/80 text-black font-extrabold py-3 text-lg shadow-[0_2px_0_rgba(0,0,0,0.10)] hover:bg-white/90 transition-colors disabled:opacity-50"
         >
           {currentIndex + 1 < questions.length ? "NEXT" : "FINISH"}
         </button>
