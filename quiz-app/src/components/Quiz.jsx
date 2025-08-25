@@ -1,4 +1,3 @@
-// src/components/Quiz.jsx
 import { useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -15,13 +14,12 @@ export default function Quiz() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // dynamic questions passed from Home
   const { questions = [], topic, difficulty, count } = location.state || {};
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
-  const [answers, setAnswers] = useState([]); // collect review data
+  const [answers, setAnswers] = useState([]);
 
   if (questions.length === 0) {
     return (
@@ -33,7 +31,6 @@ export default function Quiz() {
 
   const currentQuestion = questions[currentIndex];
 
-  // stable shuffled options per question index
   const options = useMemo(() => {
     if (!currentQuestion) return [];
     const opts = [
@@ -45,7 +42,6 @@ export default function Quiz() {
 
   const handleAnswer = (option) => {
     setSelected(option);
-    // scoring handled on Next
   };
 
   const handleNext = () => {
@@ -68,7 +64,6 @@ export default function Quiz() {
       setCurrentIndex((i) => i + 1);
       setSelected(null);
     } else {
-      // navigate to results with review payload
       navigate("/results", {
         state: {
           score: finalScore,
@@ -81,13 +76,11 @@ export default function Quiz() {
     }
   };
 
-  // progress %
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center">
       <div className="w-full max-w-3xl mx-auto flex flex-col px-4 py-6 min-h-[80vh] justify-center">
-        {/* Header */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full items-center mb-4">
           <div className="text-[#E90E63] font-semibold text-base sm:text-lg text-center sm:text-left">
             {topic || "General Knowledge"}
@@ -100,7 +93,6 @@ export default function Quiz() {
           </div>
         </div>
 
-        {/* Progress Bar */}
         <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
           <div
             className="h-2 bg-[#E90E63] rounded-full transition-all duration-300"
@@ -108,7 +100,6 @@ export default function Quiz() {
           ></div>
         </div>
 
-        {/* Question Box */}
         <div className="w-full bg-white rounded-lg shadow-md p-5 mb-6">
           <h2
             className="text-lg sm:text-xl font-semibold text-center text-gray-800 leading-snug"
@@ -116,7 +107,6 @@ export default function Quiz() {
           />
         </div>
 
-        {/* Options */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
           {options.map((option, i) => {
             const isSelected = selected === option;
@@ -144,7 +134,6 @@ export default function Quiz() {
           })}
         </div>
 
-        {/* Next Button */}
         <button
           onClick={handleNext}
           disabled={!selected}

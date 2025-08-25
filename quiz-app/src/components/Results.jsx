@@ -1,4 +1,3 @@
-// src/components/Results.jsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -13,7 +12,6 @@ export default function Results() {
 
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
-  // Save result 
   useEffect(() => {
     if (total > 0) {
       const attempt = {
@@ -40,15 +38,12 @@ export default function Results() {
     }
   }, [score, total, topic, difficulty, percentage]);
 
-  // Retake quiz 
   const retakeQuiz = async () => {
     try {
-      // First fetch categories to get the ID for the topic name
       const categoriesRes = await fetch("https://opentdb.com/api_category.php");
       const categoriesData = await categoriesRes.json();
       const categories = categoriesData.trivia_categories || [];
       
-      // Find the category ID for the current topic name
       const selectedCategory = categories.find(cat => cat.name === topic);
       const categoryId = selectedCategory ? selectedCategory.id : "";
       
@@ -78,7 +73,6 @@ export default function Results() {
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center">
       <div className="w-full max-w-3xl mx-auto flex flex-col px-6 py-8 text-center">
-        {/* Score Box */}
         <div className="bg-white rounded-lg shadow-md w-full p-8 mb-8">
           <h1 className="text-3xl font-bold text-[#E90E63] mb-4">
             Quiz Finished!
@@ -90,7 +84,6 @@ export default function Results() {
           <p className="text-3xl font-extrabold text-gray-900">{percentage}%</p>
         </div>
 
-        {/* Review of questions */}
         <div className="w-full bg-white rounded-lg shadow-md p-8 mb-8 text-left">
           <h2 className="text-2xl font-semibold mb-6 text-[#E90E63]">Review</h2>
           {answers.map((a, i) => (
@@ -118,7 +111,6 @@ export default function Results() {
           ))}
         </div>
 
-        {/* Past History */}
         <div className="w-full bg-white rounded-lg shadow-md p-8 text-left">
           <h2 className="text-2xl font-semibold mb-6 text-[#E90E63]">Past Attempts</h2>
           {history.length === 0 ? (
@@ -140,7 +132,6 @@ export default function Results() {
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="w-full mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
             onClick={() => navigate("/")}

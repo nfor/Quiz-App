@@ -1,4 +1,3 @@
-// src/components/History.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -42,7 +41,6 @@ export default function History() {
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => navigate("/")}

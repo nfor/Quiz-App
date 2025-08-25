@@ -4,7 +4,6 @@ import Quiz from "./components/Quiz";
 import Results from "./components/Results";
 import History from "./components/History";
 
-
 function App() {
   return (
     <Router>

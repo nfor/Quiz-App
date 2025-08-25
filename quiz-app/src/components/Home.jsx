@@ -1,4 +1,3 @@
-// src/components/Home.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -52,38 +51,29 @@ export default function Home() {
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Update topic selection when search changes (but not when user manually selected)
   useEffect(() => {
     if (search && filteredCategories.length > 0 && !isManualSelection) {
-      // Auto-select the first matching category
       const firstMatch = filteredCategories[0];
       setTopic(firstMatch.id);
       setTopicName(firstMatch.name);
     } else if (!search && categories.length > 0 && !isManualSelection) {
-      // Reset to first category when search is cleared
       setTopic(categories[0].id);
       setTopicName(categories[0].name);
     }
     
-    // Reset manual selection flag when search changes
     if (search) {
       setIsManualSelection(false);
     }
   }, [search, categories, filteredCategories, isManualSelection]);
 
   return (
-    // Full viewport background
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center p-0 m-0">
-      {/* Centered content container */}
       <div className="w-full max-w-3xl mx-auto flex flex-col items-center px-6 py-8">
-        {/* Title */}
         <h1 className="text-center text-4xl font-extrabold tracking-wide text-[#E90E63] leading-tight mb-6">
           WELCOME TO THE ALX <br /> QUIZ APP
         </h1>
 
-        {/* Main controls */}
         <div className="w-full flex flex-col items-center gap-6">
-          {/* Search bar */}
           <input
             type="text"
             name="search"
@@ -93,7 +83,6 @@ export default function Home() {
             className="w-full rounded-lg bg-[#E90E63] text-white placeholder-white text-center py-3 shadow outline-none text-base"
           />
 
-          {/* Dropdowns */}
           <div className="flex flex-wrap justify-between gap-4 w-full">
             <select
               name="topic"
@@ -103,8 +92,7 @@ export default function Home() {
                 const selectedCategory = categories.find(cat => cat.id.toString() === selectedId);
                 setTopic(selectedId);
                 setTopicName(selectedCategory?.name || "");
-                setIsManualSelection(true); // Mark as manual selection
-                // Clear search when manually selecting from dropdown
+                setIsManualSelection(true);
                 setSearch("");
               }}
               className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base"
@@ -143,7 +131,6 @@ export default function Home() {
             </select>
           </div>
 
-          {/* Start button */}
           <button
             onClick={startQuiz}
             className="w-full rounded-lg bg-white/80 text-black font-extrabold py-3 text-lg shadow-[0_2px_0_rgba(0,0,0,0.10)] hover:bg-white/90 transition-colors"
