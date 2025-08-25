@@ -6,7 +6,7 @@ export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { score = 0, total = 0, answers = [], topic, difficulty } =
+  const { score = 0, total = 0, answers = [], topic, difficulty, count } =
     location.state || {};
 
   const [history, setHistory] = useState([]);
@@ -26,7 +26,6 @@ export default function Results() {
       };
 
       const prev = JSON.parse(localStorage.getItem("quizHistory") || "[]");
-      // Remove duplicates: keep only unique attempts based on topic, difficulty, score, total, percentage
       const isDuplicate = prev.some(
         (h) =>
           h.topic === attempt.topic &&
@@ -40,6 +39,32 @@ export default function Results() {
       setHistory(updated);
     }
   }, [score, total, topic, difficulty, percentage]);
+
+  // 🔄 Retake quiz with same settings
+  const retakeQuiz = async () => {
+    try {
+      const url = `https://opentdb.com/api.php?amount=${count || total}&category=${topic}&difficulty=${(difficulty || "easy").toLowerCase()}&type=multiple`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.results || data.results.length === 0) {
+        alert("No questions available. Try again later.");
+        return;
+      }
+
+      navigate("/quiz", {
+        state: {
+          questions: data.results,
+          topic,
+          difficulty,
+          count: count || total,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to fetch questions:", err);
+      alert("Could not restart quiz. Please try again later.");
+    }
+  };
 
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center">
@@ -115,15 +140,7 @@ export default function Results() {
             Try Another Quiz
           </button>
           <button
-            onClick={() =>
-              navigate("/quiz", {
-                state: {
-                  topic: topic || "General Knowledge",
-                  difficulty: difficulty || "Easy",
-                  count: total,
-                },
-              })
-            }
+            onClick={retakeQuiz}
             className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-white text-gray-800 shadow-md hover:bg-gray-50 transition-colors"
           >
             Retake Quiz
