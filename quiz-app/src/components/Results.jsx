@@ -1,4 +1,4 @@
-// src/pages/Results.jsx
+// src/components/Results.jsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,7 @@ export default function Results() {
 
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
-  // Save result on mount
+  // Save result 
   useEffect(() => {
     if (total > 0) {
       const attempt = {
@@ -40,10 +40,19 @@ export default function Results() {
     }
   }, [score, total, topic, difficulty, percentage]);
 
-  // 🔄 Retake quiz with same settings
+  // Retake quiz 
   const retakeQuiz = async () => {
     try {
-      const url = `https://opentdb.com/api.php?amount=${count || total}&category=${topic}&difficulty=${(difficulty || "easy").toLowerCase()}&type=multiple`;
+      // First fetch categories to get the ID for the topic name
+      const categoriesRes = await fetch("https://opentdb.com/api_category.php");
+      const categoriesData = await categoriesRes.json();
+      const categories = categoriesData.trivia_categories || [];
+      
+      // Find the category ID for the current topic name
+      const selectedCategory = categories.find(cat => cat.name === topic);
+      const categoryId = selectedCategory ? selectedCategory.id : "";
+      
+      const url = `https://opentdb.com/api.php?amount=${count || total}&category=${categoryId}&difficulty=${(difficulty || "easy").toLowerCase()}&type=multiple`;
       const res = await fetch(url);
       const data = await res.json();
 

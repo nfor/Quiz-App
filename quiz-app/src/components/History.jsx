@@ -1,4 +1,4 @@
-// src/pages/History.jsx
+// src/components/History.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 

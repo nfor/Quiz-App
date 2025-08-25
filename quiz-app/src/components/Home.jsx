@@ -1,4 +1,4 @@
-// src/pages/Home.jsx
+// src/components/Home.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -9,9 +9,11 @@ export default function Home() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [topic, setTopic] = useState(null);
+  const [topicName, setTopicName] = useState("");
   const [difficulty, setDifficulty] = useState(DIFFICULTIES[0]);
   const [count, setCount] = useState(QUESTION_COUNTS[0]);
   const [search, setSearch] = useState("");
+  const [isManualSelection, setIsManualSelection] = useState(false);
 
   useEffect(() => {
     fetch("https://opentdb.com/api_category.php")
@@ -20,6 +22,7 @@ export default function Home() {
         setCategories(data.trivia_categories || []);
         if (data.trivia_categories?.length > 0) {
           setTopic(data.trivia_categories[0].id);
+          setTopicName(data.trivia_categories[0].name);
         }
       })
       .catch((err) => console.error("Error fetching categories:", err));
@@ -37,7 +40,7 @@ export default function Home() {
       }
 
       navigate("/quiz", {
-        state: { questions: data.results, topic, difficulty, count },
+        state: { questions: data.results, topic: topicName, difficulty, count },
       });
     } catch (err) {
       console.error("Failed to start quiz:", err);
@@ -48,6 +51,25 @@ export default function Home() {
   const filteredCategories = categories.filter((cat) =>
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Update topic selection when search changes (but not when user manually selected)
+  useEffect(() => {
+    if (search && filteredCategories.length > 0 && !isManualSelection) {
+      // Auto-select the first matching category
+      const firstMatch = filteredCategories[0];
+      setTopic(firstMatch.id);
+      setTopicName(firstMatch.name);
+    } else if (!search && categories.length > 0 && !isManualSelection) {
+      // Reset to first category when search is cleared
+      setTopic(categories[0].id);
+      setTopicName(categories[0].name);
+    }
+    
+    // Reset manual selection flag when search changes
+    if (search) {
+      setIsManualSelection(false);
+    }
+  }, [search, categories, filteredCategories, isManualSelection]);
 
   return (
     // Full viewport background
@@ -76,7 +98,15 @@ export default function Home() {
             <select
               name="topic"
               value={topic || ''}
-              onChange={(e) => setTopic(e.target.value)}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                const selectedCategory = categories.find(cat => cat.id.toString() === selectedId);
+                setTopic(selectedId);
+                setTopicName(selectedCategory?.name || "");
+                setIsManualSelection(true); // Mark as manual selection
+                // Clear search when manually selecting from dropdown
+                setSearch("");
+              }}
               className="flex-1 rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base"
             >
               {filteredCategories.map((cat) => (

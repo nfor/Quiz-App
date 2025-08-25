@@ -1,4 +1,4 @@
-// src/pages/Quiz.jsx
+// src/components/Quiz.jsx
 import { useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
