@@ -13,7 +13,7 @@ function App() {
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/results" element={<Results />} />
         <Route path="/history" element={<History />} />
-        
+        <Route path="*" element={<Home />} />
       </Routes>
     </Router>
   );
