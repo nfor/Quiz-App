@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
 
 export default function Results() {
   const location = useLocation();
@@ -9,8 +10,80 @@ export default function Results() {
     location.state || {};
 
   const [history, setHistory] = useState([]);
+  const [displayScore, setDisplayScore] = useState(0);
+  const scoreRef = useRef(null);
+  const answersRef = useRef([]);
+  const buttonsRef = useRef(null);
+  const buttonRefs = useRef([]);
 
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  useEffect(() => {
+    // Animate score counter
+    gsap.to(scoreRef.current, {
+      innerHTML: score,
+      duration: 1.5,
+      snap: { innerHTML: 1 },
+      ease: "power2.out"
+    });
+
+    // Animate answer reveals
+    gsap.fromTo(
+      answersRef.current,
+      { 
+        opacity: 0, 
+        y: 30,
+        scale: 0.97
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: "power2.out",
+        delay: 0.3
+      }
+    );
+
+    // Animate buttons
+    gsap.fromTo(
+      buttonRefs.current,
+      {
+        opacity: 0,
+        y: 20,
+        scale: 0.9
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power3.out",
+        delay: 1.2,
+        onComplete: () => {
+          // Add hover animations
+          buttonRefs.current.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+              gsap.to(button, {
+                scale: 1.05,
+                duration: 0.3,
+                ease: "power2.out"
+              });
+            });
+            button.addEventListener('mouseleave', () => {
+              gsap.to(button, {
+                scale: 1,
+                duration: 0.3,
+                ease: "power2.out"
+              });
+            });
+          });
+        }
+      }
+    );
+  }, [score]);
 
   useEffect(() => {
     if (total > 0) {
@@ -78,7 +151,7 @@ export default function Results() {
             Quiz Finished!
           </h1>
           <p className="text-lg text-gray-700 mb-3">
-            You scored <span className="font-bold">{score}</span> out of{" "}
+            You scored <span ref={scoreRef} className="font-bold">0</span> out of{" "}
             <span className="font-bold">{total}</span>
           </p>
           <p className="text-3xl font-extrabold text-gray-900">{percentage}%</p>
@@ -87,7 +160,11 @@ export default function Results() {
         <div className="w-full bg-white rounded-lg shadow-md p-8 mb-8 text-left">
           <h2 className="text-2xl font-semibold mb-6 text-[#E90E63]">Review</h2>
           {answers.map((a, i) => (
-            <div key={i} className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div 
+              key={i} 
+              className="mb-6 p-4 bg-gray-50 rounded-lg"
+              ref={el => answersRef.current[i] = el}
+            >
               <p
                 className="text-lg font-semibold text-gray-800 mb-3"
                 dangerouslySetInnerHTML={{ __html: `${i + 1}. ${a.question}` }}
@@ -132,22 +209,25 @@ export default function Results() {
           )}
         </div>
 
-        <div className="w-full mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div ref={buttonsRef} className="w-full mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
+            ref={el => buttonRefs.current[0] = el}
             onClick={() => navigate("/")}
-            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54] transition-colors"
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-[#E90E63] text-white shadow-md hover:bg-[#c20d54] transition-all transform"
           >
             Try Another Quiz
           </button>
           <button
+            ref={el => buttonRefs.current[1] = el}
             onClick={retakeQuiz}
-            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-white text-gray-800 shadow-md hover:bg-gray-50 transition-colors"
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-white text-gray-800 shadow-md hover:bg-gray-50 transition-all transform"
           >
             Retake Quiz
           </button>
           <button
+            ref={el => buttonRefs.current[2] = el}
             onClick={() => navigate("/history")}
-            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-gray-100 text-gray-700 shadow-md hover:bg-gray-200 transition-colors"
+            className="w-full rounded-lg py-3 px-6 font-semibold text-base bg-gray-100 text-gray-700 shadow-md hover:bg-gray-200 transition-all transform"
           >
             View History
           </button>

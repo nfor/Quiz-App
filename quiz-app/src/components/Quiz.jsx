@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import gsap from "gsap";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -20,6 +21,72 @@ export default function Quiz() {
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
   const [answers, setAnswers] = useState([]);
+  
+  const questionRef = useRef(null);
+  const optionsRef = useRef([]);
+  const nextButtonRef = useRef(null);
+  const progressRef = useRef(null);
+
+  useEffect(() => {
+    // Animate question entrance with subtle zoom
+    gsap.fromTo(
+      questionRef.current,
+      { 
+        opacity: 0,
+        y: -10,
+        scale: 0.98
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.35,
+        ease: "power3.out",
+        clearProps: "all"
+      }
+    );
+
+    // Create smooth entrance timeline
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" }});
+    
+    // Animate options entrance with subtle fade and rise
+    tl.fromTo(
+      optionsRef.current,
+      { 
+        opacity: 0,
+        y: 10,
+        scale: 0.99
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.3,
+        stagger: {
+          amount: 0.2,  // Total stagger time
+          from: "start",
+          ease: "power1.in"
+        },
+        clearProps: "all"
+      }
+    );
+
+    // Animate next button
+    gsap.fromTo(
+      nextButtonRef.current,
+      {
+        opacity: 0,
+        y: 20
+      },
+      {
+        opacity: selected ? 1 : 0.5,
+        y: 0,
+        duration: 0.5,
+        ease: "power2.out",
+        delay: 0.3
+      }
+    );
+  }, [currentIndex]);
 
   if (questions.length === 0) {
     return (
@@ -42,6 +109,27 @@ export default function Quiz() {
 
   const handleAnswer = (option) => {
     setSelected(option);
+    
+    // Animate next button appearance
+    gsap.to(nextButtonRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.4,
+      ease: "power2.out"
+    });
+
+    // Animate selected option
+    const selectedButton = optionsRef.current.find(
+      btn => btn.innerHTML === option
+    );
+    
+    if (selectedButton) {
+      gsap.to(selectedButton, {
+        scale: 1.05,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    }
   };
 
   const handleNext = () => {
@@ -78,6 +166,17 @@ export default function Quiz() {
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
+  // Update progress bar animation
+  useEffect(() => {
+    if (progressRef.current) {
+      gsap.to(progressRef.current, {
+        width: `${progress}%`,
+        duration: 0.6,
+        ease: "power2.inOut"
+      });
+    }
+  }, [progress]);
+
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center">
       <div className="w-full max-w-3xl mx-auto flex flex-col px-4 py-6 min-h-[80vh] justify-center">
@@ -95,13 +194,15 @@ export default function Quiz() {
 
         <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
           <div
-            className="h-2 bg-[#E90E63] rounded-full transition-all duration-300"
+            ref={progressRef}
+            className="h-2 bg-[#E90E63] rounded-full"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
 
         <div className="w-full bg-white rounded-lg shadow-md p-5 mb-6">
           <h2
+            ref={questionRef}
             className="text-lg sm:text-xl font-semibold text-center text-gray-800 leading-snug"
             dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
           />
@@ -118,6 +219,7 @@ export default function Quiz() {
             return (
               <button
                 key={i}
+                ref={el => optionsRef.current[i] = el}
                 onClick={() => handleAnswer(option)}
                 disabled={!!selected}
                 className={`w-full rounded-lg py-2.5 px-4 font-medium text-base shadow-sm transition-all hover:shadow-md
@@ -135,6 +237,7 @@ export default function Quiz() {
         </div>
 
         <button
+          ref={nextButtonRef}
           onClick={handleNext}
           disabled={!selected}
           className="w-full sm:w-1/2 mx-auto rounded-lg bg-[#E90E63] text-white font-semibold py-3 text-base shadow-md hover:bg-[#c20d54] transition-colors disabled:opacity-50 disabled:hover:bg-[#E90E63]"

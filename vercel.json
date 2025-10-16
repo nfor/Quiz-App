@@ -1,0 +1,14 @@
+{
+  "buildCommand": "cd quiz-app && npm run build",
+  "outputDirectory": "quiz-app/dist",
+  "installCommand": "cd quiz-app && npm install",
+  "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

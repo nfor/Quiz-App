@@ -1,0 +1,26 @@
+{
+  "name": "alx-quiz-app",
+  "version": "1.0.0",
+  "description": "ALX Quiz Application",
+  "scripts": {
+    "dev": "cd quiz-app && npm run dev",
+    "build": "cd quiz-app && npm run build",
+    "preview": "cd quiz-app && npm run preview",
+    "install-deps": "cd quiz-app && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nfor/Quiz-App.git"
+  },
+  "keywords": [
+    "quiz",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "gsap": "^3.13.0"
+  }
+}
