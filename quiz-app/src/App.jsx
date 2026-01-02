@@ -8,9 +8,9 @@ import History from "./components/History";
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QuizProvider>
-        <Router>
+    <Router>
+      <ErrorBoundary>
+        <QuizProvider>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/quiz" element={<Quiz />} />
@@ -18,9 +18,9 @@ function App() {
             <Route path="/history" element={<History />} />
             <Route path="*" element={<Home />} />
           </Routes>
-        </Router>
-      </QuizProvider>
-    </ErrorBoundary>
+        </QuizProvider>
+      </ErrorBoundary>
+    </Router>
   );
 }
 
