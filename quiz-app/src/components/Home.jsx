@@ -2,21 +2,19 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useMemo } from "react";
 import gsap from "gsap";
 import LoadingSpinner from "./LoadingSpinner";
+import { useQuiz, QUIZ_ACTIONS } from "../contexts/QuizContext";
 import { QUIZ_SETTINGS, API_CONFIG } from "../constants/config";
 import { ANIMATION_DURATIONS, ANIMATION_EASES, STAGGER, SCALE, COLORS, OFFSETS, OPACITY } from "../constants/animations";
 import { validateQuizParameters, validateQuizResponse } from "../utils/validation";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { state: quizState, dispatch } = useQuiz();
   const [categories, setCategories] = useState([]);
-  const [topic, setTopic] = useState(null);
-  const [topicName, setTopicName] = useState("");
-  const [difficulty, setDifficulty] = useState(QUIZ_SETTINGS.DEFAULT_DIFFICULTY);
-  const [count, setCount] = useState(QUIZ_SETTINGS.DEFAULT_QUESTION_COUNT);
   const [search, setSearch] = useState("");
   const [isManualSelection, setIsManualSelection] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [validationError, setValidationError] = useState(null);
 
   // Refs for animations
@@ -103,19 +101,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
+    setIsCategoriesLoading(true);
     fetch(API_CONFIG.TRIVIA_CATEGORIES_URL)
       .then((res) => res.json())
       .then((data) => {
         setCategories(data.trivia_categories || []);
         if (data.trivia_categories?.length > 0) {
-          setTopic(data.trivia_categories[0].id);
-          setTopicName(data.trivia_categories[0].name);
+          dispatch({ type: QUIZ_ACTIONS.SET_TOPIC, payload: data.trivia_categories[0].id });
+          dispatch({ type: QUIZ_ACTIONS.SET_TOPIC_NAME, payload: data.trivia_categories[0].name });
         }
       })
       .catch((err) => console.error("Error fetching categories:", err))
-      .finally(() => setIsLoading(false));
-  }, []);
+      .finally(() => setIsCategoriesLoading(false));
+  }, [dispatch]);
 
   const filteredCategories = useMemo(() => 
     categories.filter((cat) =>
@@ -126,16 +124,16 @@ export default function Home() {
 
   const startQuiz = async () => {
     // Validate parameters
-    const validation = validateQuizParameters(topic, difficulty, count);
+    const validation = validateQuizParameters(quizState.topic, quizState.difficulty, quizState.count);
     if (!validation.isValid) {
       setValidationError(validation.error);
       return;
     }
 
     try {
-      setIsLoading(true);
+      dispatch({ type: QUIZ_ACTIONS.SET_LOADING, payload: true });
       setValidationError(null);
-      const url = `${API_CONFIG.TRIVIA_BASE_URL}?amount=${count}&category=${topic}&difficulty=${difficulty.toLowerCase()}&type=${API_CONFIG.QUESTION_TYPE}`;
+      const url = `${API_CONFIG.TRIVIA_BASE_URL}?amount=${quizState.count}&category=${quizState.topic}&difficulty=${quizState.difficulty.toLowerCase()}&type=${API_CONFIG.QUESTION_TYPE}`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -143,26 +141,37 @@ export default function Home() {
       const responseValidation = validateQuizResponse(data);
       if (!responseValidation.isValid) {
         setValidationError(responseValidation.error);
-        setIsLoading(false);
+        dispatch({ type: QUIZ_ACTIONS.SET_LOADING, payload: false });
         return;
       }
 
+      dispatch({
+        type: QUIZ_ACTIONS.INITIALIZE_QUIZ,
+        payload: {
+          questions: data.results,
+          topic: quizState.topic,
+          topicName: quizState.topicName,
+          difficulty: quizState.difficulty,
+          count: quizState.count,
+        }
+      });
+
       navigate("/quiz", {
-        state: { questions: data.results, topic: topicName, difficulty, count },
+        state: { questions: data.results, topic: quizState.topicName, difficulty: quizState.difficulty, count: quizState.count },
       });
     } catch (err) {
       console.error("Failed to start quiz:", err);
       setValidationError("Could not fetch quiz data. Please try again later.");
-      setIsLoading(false);
+      dispatch({ type: QUIZ_ACTIONS.SET_LOADING, payload: false });
     }
   };
 
   useEffect(() => {
     if (!isManualSelection && categories.length > 0) {
-      setTopic(categories[0].id);
-      setTopicName(categories[0].name);
+      dispatch({ type: QUIZ_ACTIONS.SET_TOPIC, payload: categories[0].id });
+      dispatch({ type: QUIZ_ACTIONS.SET_TOPIC_NAME, payload: categories[0].name });
     }
-  }, [categories, isManualSelection]);
+  }, [categories, isManualSelection, dispatch]);
 
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex items-center justify-center p-0 m-0">
@@ -177,7 +186,7 @@ export default function Home() {
           <div>QUIZ APP</div>
         </h1>
         <div className="w-full flex flex-col items-center gap-6">
-          {isLoading && categories.length === 0 ? (
+          {isCategoriesLoading && categories.length === 0 ? (
             <LoadingSpinner />
           ) : (
             <>
@@ -204,7 +213,7 @@ export default function Home() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="w-full rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base text-left flex justify-between items-center hover:bg-[#d00c59] transition-colors"
                   >
-                    <span className="truncate">{topicName || "Select Topic"}</span>
+                    <span className="truncate">{quizState.topicName || "Select Topic"}</span>
                     <svg
                       className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
                       fill="none"
@@ -233,13 +242,13 @@ export default function Home() {
                               <button
                                 key={cat.id}
                                 onClick={() => {
-                                  setTopic(cat.id);
-                                  setTopicName(cat.name);
+                                  dispatch({ type: QUIZ_ACTIONS.SET_TOPIC, payload: cat.id });
+                                  dispatch({ type: QUIZ_ACTIONS.SET_TOPIC_NAME, payload: cat.name });
                                   setIsManualSelection(true);
                                   setIsDropdownOpen(false);
                                 }}
                                 className={`w-full px-4 py-2 text-left text-white hover:bg-blue-500 hover:border-0 transition-colors bg-[#E90E63] ${
-                                  topic === cat.id ? "font-medium bg-blue-500" : ""
+                                  quizState.topic === cat.id ? "font-medium bg-blue-500" : ""
                                 }`}
                               >
                                 {cat.name}
@@ -259,8 +268,8 @@ export default function Home() {
                 <select
                   ref={el => selectRefs.current[1] = el}
                   name="difficulty"
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
+                  value={quizState.difficulty}
+                  onChange={(e) => dispatch({ type: QUIZ_ACTIONS.SET_DIFFICULTY, payload: e.target.value })}
                   className="w-full rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base hover:shadow-lg transition-shadow"
                 >
                   {QUIZ_SETTINGS.DIFFICULTIES.map((d) => (
@@ -273,8 +282,8 @@ export default function Home() {
                 <select
                   ref={el => selectRefs.current[2] = el}
                   name="count"
-                  value={count}
-                  onChange={(e) => setCount(Number(e.target.value))}
+                  value={quizState.count}
+                  onChange={(e) => dispatch({ type: QUIZ_ACTIONS.SET_COUNT, payload: Number(e.target.value) })}
                   className="w-full rounded-lg bg-[#E90E63] text-white font-medium px-4 py-3 shadow outline-none text-base hover:shadow-lg transition-shadow"
                 >
                   {QUIZ_SETTINGS.QUESTION_COUNTS.map((num) => (
@@ -289,11 +298,11 @@ export default function Home() {
                 ref={startButtonRef}
                 onClick={startQuiz}
                 className="w-full rounded-lg bg-white/80 text-black font-extrabold py-3 text-lg shadow-[0_2px_0_rgba(0,0,0,0.10)] hover:bg-white/90 transition-all transform disabled:opacity-50 disabled:cursor-not-allowed"
-                onMouseEnter={() => !isLoading && gsap.to(startButtonRef.current, { scale: SCALE.HOVER, duration: ANIMATION_DURATIONS.FAST })}
-                onMouseLeave={() => !isLoading && gsap.to(startButtonRef.current, { scale: SCALE.NORMAL, duration: ANIMATION_DURATIONS.FAST })}
-                disabled={!topic || categories.length === 0 || isLoading}
+                onMouseEnter={() => !quizState.isLoading && gsap.to(startButtonRef.current, { scale: SCALE.HOVER, duration: ANIMATION_DURATIONS.FAST })}
+                onMouseLeave={() => !quizState.isLoading && gsap.to(startButtonRef.current, { scale: SCALE.NORMAL, duration: ANIMATION_DURATIONS.FAST })}
+                disabled={!quizState.topic || categories.length === 0 || quizState.isLoading}
               >
-                {isLoading ? "LOADING..." : "START QUIZ"}
+                {quizState.isLoading ? "LOADING..." : "START QUIZ"}
               </button>
             </>
           )}
