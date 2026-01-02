@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import gsap from "gsap";
+import { decode } from "html-entities";
+import LoadingSpinner from "./LoadingSpinner";
 
 export default function Results() {
   const location = useLocation();
@@ -11,6 +13,7 @@ export default function Results() {
 
   const [history, setHistory] = useState([]);
   const [displayScore, setDisplayScore] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const scoreRef = useRef(null);
   const answersRef = useRef([]);
   const buttonsRef = useRef(null);
@@ -111,8 +114,13 @@ export default function Results() {
     }
   }, [score, total, topic, difficulty, percentage]);
 
+  /**
+   * Fetches new questions for the same quiz configuration
+   * Allows user to retake the same quiz with new questions
+   */
   const retakeQuiz = async () => {
     try {
+      setIsLoading(true);
       const categoriesRes = await fetch("https://opentdb.com/api_category.php");
       const categoriesData = await categoriesRes.json();
       const categories = categoriesData.trivia_categories || [];
@@ -126,6 +134,7 @@ export default function Results() {
 
       if (!data.results || data.results.length === 0) {
         alert("No questions available. Try again later.");
+        setIsLoading(false);
         return;
       }
 
@@ -140,8 +149,17 @@ export default function Results() {
     } catch (err) {
       console.error("Failed to fetch questions:", err);
       alert("Could not restart quiz. Please try again later.");
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center items-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-screen bg-[#F3E4F4] flex justify-center">
@@ -165,24 +183,23 @@ export default function Results() {
               className="mb-6 p-4 bg-gray-50 rounded-lg"
               ref={el => answersRef.current[i] = el}
             >
-              <p
-                className="text-lg font-semibold text-gray-800 mb-3"
-                dangerouslySetInnerHTML={{ __html: `${i + 1}. ${a.question}` }}
-              />
+              <p className="text-lg font-semibold text-gray-800 mb-3">
+                {i + 1}. {decode(a.question)}
+              </p>
               <p className="mb-2">
                 Your Answer:{" "}
                 <span
                   className={`${
                     a.isCorrect ? "text-green-600" : "text-red-600"
                   } font-bold text-lg`}
-                  dangerouslySetInnerHTML={{ __html: a.selected || "No Answer" }}
-                />
+                >
+                  {decode(a.selected || "No Answer")}
+                </span>
               </p>
               {!a.isCorrect && (
-                <p
-                  className="text-green-600 text-lg"
-                  dangerouslySetInnerHTML={{ __html: `Correct: ${a.correct}` }}
-                />
+                <p className="text-green-600 text-lg">
+                  Correct: {decode(a.correct)}
+                </p>
               )}
             </div>
           ))}

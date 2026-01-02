@@ -1,7 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
+import { decode } from "html-entities";
+import LoadingSpinner from "./LoadingSpinner";
 
+/**
+ * Fisher-Yates shuffle algorithm to randomize array
+ * @param {Array} arr - Array to shuffle
+ * @returns {Array} Shuffled array
+ */
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -21,6 +28,7 @@ export default function Quiz() {
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   const questionRef = useRef(null);
   const optionsRef = useRef([]);
@@ -96,7 +104,10 @@ export default function Quiz() {
     );
   }
 
-  const currentQuestion = questions[currentIndex];
+  const currentQuestion = useMemo(() => 
+    questions[currentIndex],
+    [questions, currentIndex]
+  );
 
   const options = useMemo(() => {
     if (!currentQuestion) return [];
@@ -107,6 +118,11 @@ export default function Quiz() {
     return shuffle(opts);
   }, [currentIndex, questions]);
 
+  /**
+   * Handles user selecting an answer option
+   * Updates selected state and animates the UI
+   * @param {string} option - The selected answer text
+   */
   const handleAnswer = (option) => {
     setSelected(option);
     
@@ -120,7 +136,7 @@ export default function Quiz() {
 
     // Animate selected option
     const selectedButton = optionsRef.current.find(
-      btn => btn.innerHTML === option
+      (btn, idx) => idx < options.length && options[idx] === option
     );
     
     if (selectedButton) {
@@ -132,6 +148,10 @@ export default function Quiz() {
     }
   };
 
+  /**
+   * Handles moving to next question or finishing quiz
+   * Validates answer, updates score, and navigates to results if quiz is complete
+   */
   const handleNext = () => {
     const isCorrect = selected === currentQuestion.correct_answer;
 
@@ -152,6 +172,7 @@ export default function Quiz() {
       setCurrentIndex((i) => i + 1);
       setSelected(null);
     } else {
+      setIsLoading(true);
       navigate("/results", {
         state: {
           score: finalScore,
@@ -204,8 +225,9 @@ export default function Quiz() {
           <h2
             ref={questionRef}
             className="text-lg sm:text-xl font-semibold text-center text-gray-800 leading-snug"
-            dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
-          />
+          >
+            {decode(currentQuestion.question)}
+          </h2>
         </div>
 
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -230,8 +252,9 @@ export default function Quiz() {
                       ? "bg-red-500 text-white"
                       : "bg-white text-gray-800 hover:bg-[#E90E63] hover:text-white"
                   }`}
-                dangerouslySetInnerHTML={{ __html: option }}
-              />
+              >
+                {decode(option)}
+              </button>
             );
           })}
         </div>
